@@ -18,8 +18,8 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
   desde 2.000 filas; en fallback, sin contador. **189 tests en verde** (T16 redujo la
   colección: sin tests de recorte). Queda la revisión final del usuario.
 - Mantenimiento: favicon inline e `id`/`name` en todos los controles; JSON de esquema byte a byte.
-- Publicación: subir el código y los recursos de ejemplo al repositorio GitHub; mantener fuera
-  la base `data.sqlite3`, bytecode `.pyc` y cachés porque son artefactos locales.
+- Publicación: repositorio GitHub inicializado y publicado en `main`; mantener fuera la base
+  `data.sqlite3`, bytecode `.pyc` y cachés porque son artefactos locales.
 
 ## Decisiones (y por qué)
 - Frontend JS vanilla (sin React/npm/build); FastAPI + Pydantic v2 + Pandas + SQLAlchemy 2.0/
