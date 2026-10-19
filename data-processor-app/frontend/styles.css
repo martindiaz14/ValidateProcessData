@@ -1,0 +1,10 @@
+/* Estilos propios (complementan a Tailwind) */
+.chart-wrap {
+  position: relative;
+  height: 280px;
+}
+@media (max-width: 640px) {
+  .chart-wrap {
+    height: 220px;
+  }
+}

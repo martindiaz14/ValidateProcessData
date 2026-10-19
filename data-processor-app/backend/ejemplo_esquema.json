@@ -1,0 +1,10 @@
+{
+  "table_name": "transacciones_pagos",
+  "rules": {
+    "id_transaccion": { "type": "string", "pattern": "^TX-\\d{3,4}$", "required": true },
+    "cliente_email": { "type": "email", "required": true },
+    "monto": { "type": "float", "min_value": 0.01, "required": true },
+    "fecha_pago": { "type": "date", "format": "YYYY-MM-DD", "required": true },
+    "estado": { "type": "enum", "allowed_values": ["APROBADO", "PENDIENTE", "RECHAZADO"], "required": true }
+  }
+}

@@ -1,0 +1,11 @@
+id_transaccion,cliente_email,monto,fecha_pago,estado
+TX-201,juan.perez@mail.com,1500.50,2026-10-01,APROBADO
+TX-202,carlos.error.com,2300.00,2026-10-01,PENDIENTE
+TX-203,lucia@mail.com,-500.00,2026-10-02,APROBADO
+TX-204,pedro@mail.com,450.00,2026-10-02,RECHAZADO
+TX-205,sofia@mail.com,1200.00,02-10-2026,APROBADO
+TX-206,,890.00,2026-10-03,PENDIENTE
+TX-207,mario@mail.com,3300.00,2026-10-03,DESCONOCIDO
+TX-208,elena@mail.com,7500.00,2026-10-04,APROBADO
+TX217,gabriel@mail.com,950.00,2026-10-08,APROBADO
+TX-218,esteban@mail.com,1500.00,2026-10-08,COMPLETADO

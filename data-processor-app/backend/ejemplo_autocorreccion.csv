@@ -1,0 +1,7 @@
+id_transaccion,cliente_email,monto,fecha_pago,estado,nota
+TX-301," juana@mail.com ","1.234,56",25/12/2026,aprobado,"doble  espacio"
+TX-302,carlos@mail.com,"12,5",01/10/2026,PENDIENTE,"sin datos"
+TX-303,lucia@mail.com," 450,00",02/10/2026,RECHAZADO,ok
+TX-304,carlos.error.com,"1,234",03/10/2026,DESCONOCIDO,x
+TX-305,elena@mail.com,mil,04/10/2026,RECHAZADO,y
+TX-306,mario@mail.com,750,05/10/2026,APROBADO,ok
