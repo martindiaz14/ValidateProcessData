@@ -1,7 +1,7 @@
 // Lógica de la interfaz: recoge la entrada del usuario, llama a la API y pinta.
 // No valida datos aquí: la validación vive en el backend (services/).
 
-import { renderFileUploader } from "/components/FileUploader.js";
+import { renderFileUploader, actualizarLimiteSubida } from "/components/FileUploader.js";
 import { renderValidationSummary } from "/components/ValidationSummary.js";
 import { renderExportButtons } from "/components/ExportButtons.js";
 import {
@@ -27,6 +27,37 @@ let autocorreccionValidada = false; // interruptor de la última validación
 
 renderHelpModal();
 renderFileUploader(uploader, manejarValidacion, manejarCambioEntrada);
+
+// RF-1/RF-2/RF-3 (spec 004): al cargar, el navegador pregunta el entorno al
+// backend. Local → sin badge ni banner y el límite del backend; nube → badge
+// y banner visibles; SI LA CONSULTA FALLA (o el JSON no es válido) → badge y
+// banner IGUALMENTE con el límite conservador de nube: ante la duda se avisa
+// y NUNCA se oculta el aviso de privacidad (decisión del usuario). El límite
+// REAL de subida lo sigue fijando el backend con su 413; esto es informativo
+async function consultarEntorno() {
+  let modo = "nube"; // por defecto, lo conservador: fallo = se avisa
+  let limite = 4;
+  try {
+    const respuesta = await fetch("/api/v1/entorno");
+    if (!respuesta.ok) throw new Error("respuesta sin 200");
+    const datos = await respuesta.json();
+    if (datos && (datos.modo === "local" || datos.modo === "nube")) {
+      modo = datos.modo;
+      limite = Number(datos.limite_mb) > 0 ? Number(datos.limite_mb) : 4;
+    } else {
+      throw new Error("JSON sin modo reconocido");
+    }
+  } catch {
+    modo = "nube";
+    limite = 4;
+  }
+  const esDemo = modo === "nube";
+  document.getElementById("badge-demo").classList.toggle("hidden", !esDemo);
+  document.getElementById("banner-demo").classList.toggle("hidden", !esDemo);
+  actualizarLimiteSubida(limite);
+}
+
+consultarEntorno();
 
 async function manejarValidacion(archivoDatos, esquemaTexto, autocorreccion) {
   ocultarError();

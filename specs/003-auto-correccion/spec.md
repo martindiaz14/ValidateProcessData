@@ -1,5 +1,5 @@
 # Spec 003 — Auto-corrección y corrección manual
-Estado: borrador (cambio «sin límite: todas las filas de interés + contador y aviso por volumen» pendiente de aprobación; los cambios anteriores de la vista previa de errores están implementados con 191 tests en verde)
+Estado: borrador (el cambio «sin límite: todas las filas de interés + contador y aviso por volumen» está aprobado —decisión 24— e implementado con T16/T17; cifra vigente y final: 189 tests en verde, medida por QA —los 191 y 193 que aparecen en tasks.md son expectativas históricas de planificación de T15/T16, no una cifra medida—)
 
 ## Contexto y objetivo
 La spec 002 ya muestra al analista los errores con detalle, pero este tiene que

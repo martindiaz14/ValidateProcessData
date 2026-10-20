@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
   <title>Plataforma de Procesamiento y Validación de Reportes</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M8 17l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +18,9 @@
         <h1 class="text-xl sm:text-2xl font-semibold flex items-center gap-2">
           <i data-lucide="bar-chart-3" class="w-6 h-6 text-blue-600"></i>
           Procesamiento y Validación de Reportes
+          <!-- Badge de demo (RF-2): oculto por defecto; lo muestra app.js en nube o si falla /entorno -->
+          <span id="badge-demo" class="hidden text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-600 text-white shrink-0"
+            title="Modo demo: los archivos se procesan en la nube (Vercel), no en tu equipo.">Demo</span>
         </h1>
         <p class="text-sm text-slate-500 mt-1">
           Sube un archivo de datos (CSV, JSON o Excel) y define el esquema de calidad para validar y visualizar el reporte.
@@ -27,6 +31,12 @@
   </header>
 
   <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <!-- Aviso de modo demo (RF-2): oculto por defecto; lo muestra app.js en
+         nube o si falla la consulta de /api/v1/entorno (ante la duda se avisa) -->
+    <section id="banner-demo" class="hidden border border-amber-300 bg-amber-50 text-amber-800 text-sm rounded-lg px-4 py-3">
+      Modo demo (nube): los archivos que subas se procesan fuera de tu equipo, en los servidores de Vercel. No subas datos confidenciales.
+    </section>
+
     <!-- Carga de datos y editor de esquema -->
     <section id="uploader"></section>
 

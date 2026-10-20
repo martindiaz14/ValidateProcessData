@@ -2,6 +2,9 @@
 
 Verificación de backend tras cada tarea: `python -m pytest` desde
 `data-processor-app/backend/` (los 189 tests actuales deben seguir en verde).
+Cifra vigente y final: **189 tests** (medida por QA); las cifras 191 y 193 que
+aparecen en el «Hecho cuando» de T15 y T16 son expectativas históricas de
+planificación de esas tareas, no la cifra final.
 
 Protocolo del usuario: **UNA tarea por vez** — se ejecuta una sola tarea, se para
 y se pide confirmación del usuario antes de pasar a la siguiente.
@@ -280,7 +283,8 @@ Queda la revisión final del usuario de la spec.
     (los tests del presupuesto de incidencias se reescriben a la semántica por
     filas). `validator.py` (`_muestra()`, `LIMITE_MUESTRA`, solo para el
     fallback) y `parser.py` INTACTOS. Sin archivos nuevos.
-  - Hecho cuando: `python -m pytest` pasa con los 191 actuales adaptando solo lo
+  - Hecho cuando: `python -m pytest` pasa con los 191 actuales (expectativa de
+    T15; la cifra vigente y final es 189) adaptando solo lo
     necesario, que cubren: (e) una fila con 100 incidencias consume 1 sola FILA
     (p. ej. límite 2 → la fila se muestra ENTERA); (f) 1000 filas con un error
     cada una y límite 50 → las filas de interés 1..50; (g) límite 5 → la vista
@@ -307,7 +311,8 @@ Queda la revisión final del usuario de la spec.
     (los tests del tope por filas de T15 se reescriben a la nueva semántica).
     `validator.py` (`_muestra()`, `LIMITE_MUESTRA`, solo para el fallback) y
     `parser.py` INTACTOS. Sin archivos nuevos.
-  - Hecho cuando: `python -m pytest` pasa con los 193 actuales adaptando solo
+  - Hecho cuando: `python -m pytest` pasa con los 193 actuales (expectativa de
+    T16; la cifra vigente y final es 189) adaptando solo
     lo necesario, que cubren: (e) 1000 filas con un error cada una → `muestra`
     trae las 1000 (sin tope); (f) una fila con 100 incidencias → se muestra
     ENTERA como 1 fila de interés; (g) petición que aún envía `limite_muestra`

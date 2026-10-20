@@ -43,6 +43,10 @@ export function renderFileUploader(contenedor, onValidar, alCambiarEntrada) {
         <span class="text-sm font-medium text-slate-600">Archivo de datos (CSV, JSON o Excel)</span>
         <input id="file-datos" name="file-datos" type="file" accept=".csv,.json,.xlsx"
           class="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+        <!-- Tamaño máximo del archivo (RF-3): SIEMPRE visible y junto al
+             campo; el texto inicial es el conservador de nube (4 MB) y
+             app.js lo ajusta con el límite real del backend -->
+        <p id="limite-tamano" class="text-xs text-slate-500 mt-1">Tamaño máximo del archivo: 4 MB.</p>
       </label>
 
       <div class="border-t border-slate-200 pt-4 space-y-3">
@@ -312,4 +316,13 @@ function esc(s) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+// Tamaño máximo del archivo (RF-3, spec 004): actualiza el texto de
+// `#limite-tamano` con el límite que devuelve /api/v1/entorno; tolera que el
+// formulario aún no esté montado (no hay nada que actualizar)
+export function actualizarLimiteSubida(limiteMb) {
+  const texto = document.getElementById("limite-tamano");
+  if (!texto) return;
+  texto.textContent = `Tamaño máximo del archivo: ${limiteMb} MB.`;
 }

@@ -1,0 +1,9 @@
+# Entornos, caché y datos locales: nunca al repo (RF-6)
+.venv/
+__pycache__/
+*.pyc
+data.sqlite3
+.pytest_cache/
+*.log
+.vercel/
+.env

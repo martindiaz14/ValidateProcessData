@@ -3,7 +3,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from app.api.v1.endpoints.upload import _formatear_miles
+from app.core.database import SessionLocal, get_session
 from app.main import app
+from app.models.upload import Upload
 
 client = TestClient(app)
 
@@ -440,3 +443,204 @@ def test_limite_muestra_en_fallback_sigue_dando_las_primeras_50():
         cuerpo = r.json()
         assert cuerpo["muestra_filas"] == list(range(1, 51))
         assert len(cuerpo["muestra"]) == 50
+
+
+# --- Spec 004: límite dinámico, tope de filas en nube y registro best-effort ----
+# El límite de bytes (RF-3) y el tope de filas (RF-8) se leen del entorno en
+# CADA petición; el registro de la carga es mejor esfuerzo (RF-4).
+
+SUCIOS_ENTORNO_T2 = ("VERCEL", "MAX_UPLOAD_MB", "MAX_FILAS_NUBE")
+
+
+def _limpiar_entorno_t2(monkeypatch) -> None:
+    """Quita las variables de la spec 004 para no contaminar otros tests."""
+    for nombre in SUCIOS_ENTORNO_T2:
+        monkeypatch.delenv(nombre, raising=False)
+
+
+def _csv_limpio_n_filas(n: int) -> bytes:
+    """CSV válido de `n` filas (enteros: sin correcciones del paso número)."""
+    lineas = ["nombre,monto"] + [f"Empresa {i},{i}" for i in range(1, n + 1)]
+    return ("\n".join(lineas) + "\n").encode("utf-8")
+
+
+def test_formatear_miles():
+    assert _formatear_miles(2000) == "2.000"
+    assert _formatear_miles(500) == "500"
+    assert _formatear_miles(1234567) == "1.234.567"
+
+
+def test_limbite_bytes_local_10_mb(monkeypatch):
+    _limpiar_entorno_t2(monkeypatch)
+    contenido = b"x" * (11 * 1024 * 1024)  # 11 MB
+    r = client.post(
+        "/api/v1/upload",
+        files={"file": ("datos.csv", contenido, "text/csv")},
+        data={"quality_schema": ESQUEMA},
+    )
+    assert r.status_code == 413
+    assert r.json()["detail"] == "El archivo supera el límite de 10 MB."
+
+
+def test_limbite_bytes_nube_4_mb(monkeypatch):
+    _limpiar_entorno_t2(monkeypatch)
+    monkeypatch.setenv("VERCEL", "1")
+    contenido = b"x" * (5 * 1024 * 1024)  # 5 MB
+    r = client.post(
+        "/api/v1/upload",
+        files={"file": ("datos.csv", contenido, "text/csv")},
+        data={"quality_schema": ESQUEMA},
+    )
+    assert r.status_code == 413
+    assert r.json()["detail"] == "El archivo supera el límite de 4 MB."
+
+
+def test_tope_filas_nube_2000_pasa(monkeypatch):
+    # En nube, EXACTAMENTE el tope → se valida completo (200)
+    _limpiar_entorno_t2(monkeypatch)
+    monkeypatch.setenv("VERCEL", "1")
+    r = client.post(
+        "/api/v1/upload",
+        files={"file": ("datos.csv", _csv_limpio_n_filas(2000), "text/csv")},
+        data={"quality_schema": ESQUEMA},
+    )
+    assert r.status_code == 200
+    assert r.json()["total_filas"] == 2000
+
+
+def test_tope_filas_nube_2001_rechaza_sin_validar(monkeypatch):
+    # En nube, una fila de más → 413 con el mensaje exacto; la respuesta NO
+    # trae nada de validación (el archivo no se corrige ni se valida, RF-8)
+    _limpiar_entorno_t2(monkeypatch)
+    monkeypatch.setenv("VERCEL", "1")
+    r = client.post(
+        "/api/v1/upload",
+        files={"file": ("datos.csv", _csv_limpio_n_filas(2001), "text/csv")},
+        data={"quality_schema": ESQUEMA, "autocorreccion": "true"},
+    )
+    assert r.status_code == 413
+    assert r.json() == {
+        "detail": (
+            "La demo en línea acepta hasta 2.000 filas por archivo. "
+            "Para archivos más grandes, ejecuta la aplicación en local."
+        )
+    }
+    assert "total_filas" not in r.json()
+
+
+def test_tope_filas_nube_tambien_en_revalidacion_con_ediciones(monkeypatch):
+    # El tope aplica a TODA petición /upload en nube, incluida la
+    # revalidación con el campo `ediciones`
+    _limpiar_entorno_t2(monkeypatch)
+    monkeypatch.setenv("VERCEL", "1")
+    lote = '[{"fila": 1, "columna": "nombre", "valor": "Editada"}]'
+    r = client.post(
+        "/api/v1/upload",
+        files={"file": ("datos.csv", _csv_limpio_n_filas(2500), "text/csv")},
+        data={"quality_schema": ESQUEMA, "ediciones": lote},
+    )
+    assert r.status_code == 413
+    assert r.json() == {
+        "detail": (
+            "La demo en línea acepta hasta 2.000 filas por archivo. "
+            "Para archivos más grandes, ejecuta la aplicación en local."
+        )
+    }
+
+
+def test_tope_filas_no_existe_en_local(monkeypatch):
+    # En local NO hay tope de filas, aunque exista MAX_FILAS_NUBE
+    _limpiar_entorno_t2(monkeypatch)
+    monkeypatch.setenv("MAX_FILAS_NUBE", "500")
+    r = client.post(
+        "/api/v1/upload",
+        files={"file": ("datos.csv", _csv_limpio_n_filas(2001), "text/csv")},
+        data={"quality_schema": ESQUEMA},
+    )
+    assert r.status_code == 200
+    cuerpo = r.json()
+    assert cuerpo["total_filas"] == 2001
+    assert "demo" not in str(cuerpo).lower()  # el mensaje del tope, nunca
+
+
+def test_tope_filas_nube_con_max_filas_500(monkeypatch):
+    _limpiar_entorno_t2(monkeypatch)
+    monkeypatch.setenv("VERCEL", "1")
+    monkeypatch.setenv("MAX_FILAS_NUBE", "500")
+    r = client.post(
+        "/api/v1/upload",
+        files={"file": ("datos.csv", _csv_limpio_n_filas(501), "text/csv")},
+        data={"quality_schema": ESQUEMA},
+    )
+    assert r.status_code == 413
+    assert r.json() == {
+        "detail": (
+            "La demo en línea acepta hasta 500 filas por archivo. "
+            "Para archivos más grandes, ejecuta la aplicación en local."
+        )
+    }
+
+
+def test_registro_best_effort_un_fallo_de_bd_no_da_500(monkeypatch):
+    # RF-4: el commit de la BD falla (disco lleno, solo lectura…) → la
+    # respuesta sigue siendo 200 COMPLETA, con rollback y sin 500
+    _limpiar_entorno_t2(monkeypatch)
+
+    class _SesionRota:
+        """Sesión de mentira: el commit falla como un disco no escribible."""
+
+        def __init__(self):
+            self.add_llamado = False
+            self.rollback_llamado = False
+
+        def add(self, registro):
+            self.add_llamado = True
+
+        def commit(self):
+            raise RuntimeError("disco lleno")
+
+        def rollback(self):
+            self.rollback_llamado = True
+
+    rota = _SesionRota()
+    app.dependency_overrides[get_session] = lambda: rota
+    try:
+        contenido = b"nombre,monto\nEmpresa A,100\n"
+        r = client.post(
+            "/api/v1/upload",
+            files={"file": ("datos.csv", contenido, "text/csv")},
+            data={"quality_schema": ESQUEMA},
+        )
+    finally:
+        app.dependency_overrides.pop(get_session, None)
+
+    assert r.status_code == 200
+    cuerpo = r.json()
+    assert cuerpo["total_filas"] == 1
+    assert cuerpo["validas"] == 1
+    assert cuerpo["invalidas"] == 0
+    assert cuerpo["errores"] == []
+    assert cuerpo["columnas"] == ["nombre", "monto"]
+    assert cuerpo["muestra"][0]["nombre"] == "Empresa A"
+    assert rota.add_llamado is True  # el registro se intentó…
+    assert rota.rollback_llamado is True  # …y se hizo rollback
+
+
+def test_registro_normal_sigue_persistiendose():
+    # Caso feliz (BD escribible): el registro se sigue guardando igual
+    with SessionLocal() as sesion:
+        antes = sesion.query(Upload).count()
+
+    contenido = b"nombre,monto\nEmpresa A,100\n"
+    r = client.post(
+        "/api/v1/upload",
+        files={"file": ("datos_t2.csv", contenido, "text/csv")},
+        data={"quality_schema": ESQUEMA},
+    )
+    assert r.status_code == 200
+
+    with SessionLocal() as sesion:
+        despues = sesion.query(Upload).count()
+        ultimo = sesion.query(Upload).order_by(Upload.id.desc()).first()
+    assert despues == antes + 1
+    assert ultimo.filename == "datos_t2.csv"

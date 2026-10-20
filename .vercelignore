@@ -1,0 +1,18 @@
+# Lo mismo que .gitignore (caché, datos y config local) más lo que no hace
+# falta en el bundle de Vercel: specs, docs, memoria y herramientas internas
+.venv/
+__pycache__/
+*.pyc
+data.sqlite3
+.pytest_cache/
+*.log
+.vercel/
+.env
+specs/
+docs/
+.agents/
+.opencode/
+skills-lock.json
+opencode.json
+MEMORY.md
+data-processor-app/backend/tests/

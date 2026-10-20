@@ -20,7 +20,10 @@ interactivo. Los datos se procesan en local y no salen del equipo del usuario.
 - La lógica de validación/parsing vive en `services/` y se prueba sin HTTP.
 
 ## Datos
-- Persistencia en SQLite local (SQLAlchemy 2.0 / AsyncSession). Nada sale del equipo.
+- Persistencia en SQLite local (SQLAlchemy 2.0 / AsyncSession). En modo local nada sale del equipo.
+- Modo demo en la nube (spec 004): los despliegues públicos en Vercel procesan los archivos en
+  los servidores de Vercel (badge «Demo» y aviso visible en la UI); SQLite es efímero (`/tmp`)
+  y solo guarda recuentos.
 - Si cambias la forma de los datos guardados, mantén compatibilidad con lo ya guardado.
 
 ## Forma de trabajar
@@ -38,8 +41,9 @@ interactivo. Los datos se procesan en local y no salen del equipo del usuario.
 - ✅ Siempre: actualizar `MEMORY.md` al terminar cada tarea.
 - ⚠️ Pregunta antes: crear archivos nuevos, cambiar el formato de los datos guardados,
   o añadir una librería (Python o JS) a las ya fijadas en la constitución.
-- 🚫 Nunca: React, frameworks de frontend, npm ni un paso de build. Nunca subir datos a
-  servicios externos.
+- 🚫 Nunca: React, frameworks de frontend, npm ni un paso de build. Nunca subir datos de usuario a
+  servicios externos ni persistirlos fuera del equipo (la demo de Vercel solo los procesa en
+  memoria y los descarta; ver spec 004).
 
 ## Memoria
 - Al empezar, lee `MEMORY.md` para conocer el estado y las decisiones tomadas.

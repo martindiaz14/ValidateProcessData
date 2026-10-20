@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "memory": 1024,
+      "includeFiles": [
+        "data-processor-app/backend/app/**/*.py",
+        "data-processor-app/backend/requirements.txt",
+        "data-processor-app/frontend/**"
+      ]
+    }
+  },
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }
+  ]
+}

@@ -165,3 +165,9 @@ class ValidationResult(BaseModel):
     correcciones: list[Correccion] = []
     filas_corregidas: list[dict] = []
     descarga_corregida_disponible: bool = True
+
+
+class EntornoRespuesta(BaseModel):
+    """Entorno de despliegue (RF-1): modo y límite de subida vigente."""
+    modo: Literal["nube", "local"]
+    limite_mb: int
