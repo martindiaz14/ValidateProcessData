@@ -1,1 +1,11 @@
--r data-processor-app/backend/requirements.txt
+fastapi
+uvicorn[standard]
+pydantic
+pandas
+sqlalchemy
+python-multipart
+openpyxl
+
+# Tests
+pytest
+httpx
